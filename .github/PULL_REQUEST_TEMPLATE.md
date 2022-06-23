@@ -1,7 +1,7 @@
 #### Description
 
 [RETAILER-XXXX](https://ordermentum.atlassian.net/browse/RETAILER-XXXX)
-[CORE-XXXX](https://ordermentum.atlassian.net/browse/CORE-XXXX)
+[SUPPLIER-XXXX](https://ordermentum.atlassian.net/browse/SUPPLIER-XXXX)
 
 _Describe the overall goal(s) of the pull request's commits._
 
