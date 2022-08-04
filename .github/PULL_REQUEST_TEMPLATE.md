@@ -10,11 +10,8 @@ _Describe the overall goal(s) of the pull request's commits._
 
 _Check one or more and add the corresponding number of reviewers_
 
-- [ ] Bugfix _(1)_
-- [ ] Minor change _(1)_
-- [ ] Refactor (no functional changes/no api changes) _(1)_
+- [ ] Bugfix or minor change _(1)_
 - [ ] Feature _(2)_
-- [ ] Backwards compatible change in functionality _(2)_
 - [ ] Breaking change (existing functionality no longer works as expected) _(2)_
 - [ ] Critical impact (security, payments or critical functionality) _(2+CTO)_
 
