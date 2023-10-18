@@ -18,7 +18,7 @@ jobs:
             - uses: actions/checkout@v3
             - uses: derberg/manage-files-in-multiple-repositories@v2
               with:
-                github_token: ${{ secrets.CUSTOM_TOKEN }}
+                github_token: ${{ secrets.GITHUB_TOKEN }}
                 repos_to_ignore: 'magikarp,alakazam,togepi,snorlax,machop,infernape,java-sdk'
                 patterns_to_include: '.github/release-drafter.yml,.github/workflows'
                 patterns_to_ignore: '.github/workflows/copy-actions.yml'
