@@ -1,0 +1,26 @@
+name: Copy mobile actions
+
+on:
+    workflow_dispatch:
+        inputs:
+            repo_name:
+                description: |
+                    Specify name of the repository where workflows should be pushed manually.
+                    If you do not specify exact repository name, the workflow will try to replicate all missing changes to all repositories.
+                required: true
+
+jobs:
+    replicate_changes:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: derberg/manage-files-in-multiple-repositories@v2
+              with:
+                github_token: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
+                repos_to_ignore: 'product_classification ipinfo integrator libs ui infrastructure chat-api payments mrmime verify public-directory risk cart-javascript-sdk ordermentum geo myob notifications rewards .github auth global-integrator xero helm-charts serdes flags reporting graphermentum node-service-template-hapi documentum-api documentum-jobs growth cart asap-proxy insights completion node-job-prisma-template audit-log-jobs stock-api netsuite unleashed-jvm template signup-proxy ditto invoice-parser audit-log-api venue-insights api-gateway credits steveo invoice-email javascript-sdk netsuite-job eslint-config-ordermentum myob-javascript-sdk meterage-api asap-javascript spreedly data-science api-gateway-v2 psyduck docs looker oaknuggins Field-App-iOS snorlax sequelize notifications-widget react-clickout charts ant-design rrule asclepius node-oauth xero-taxcode-taxonomy om-weather-app react-select-multi public-supplier-pages-poc payments-javascript-sdk zai-node price-index Kotlin-Shared dynamics workstation-checker togepi-playground null-logger luvdisc-client sequelize-batches aba lunartick myob-exo-javascript-sdk UserPersonaSurvey asclepius-standard ordermentum-bot gists certificates jvm-packages devopsthings starter-pack aws-rotate-key PPBadgeView'
+                patterns_to_include: '.github/release-drafter.yml,.github/workflows'
+                patterns_to_ignore: '.github/workflows/copy-actions.yml,.github/workflows/NewReleasePr.yml'
+                bot_branch_name: 'ci/update-github-actions-workflows'
+
+
+            

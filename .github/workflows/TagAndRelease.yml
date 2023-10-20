@@ -1,0 +1,30 @@
+name: Tag and release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+    tagAndRelease:
+        if: contains(github.event.head_commit.message, 'Release/')
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Get release name
+              env:
+                MESSAGE: ${{ github.event.head_commit.message }}"
+              id: releaseName
+              run: echo "::set-output name=tag::${MESSAGE##*/}"
+            - name: Tag commit
+              uses: tvdias/github-tagger@v0.0.1
+              with:
+                repo-token: "${{ secrets.GITHUB_TOKEN }}"
+                tag: "${{ steps.releaseName.outputs.tag }}"
+            - name: Release
+              uses: softprops/action-gh-release@v1
+              with:
+                draft: true
+                prerelease: false
+                tag_name: "${{ steps.releaseName.outputs.tag }}"
+                name: "${{ github.event.repo.name }} ${{ steps.releaseName.outputs.tag }}"      
