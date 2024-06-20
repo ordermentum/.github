@@ -10,7 +10,7 @@ jobs:
         uses: flowwer-dev/pull-request-stats@master
         with:
           token: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
-          repositories: 'ordermentum/ui,ordermentum/ordermentum,ordermentum/magikarp,ordermentum/infernape'
+          organization: 'ordermentum'
           period: 7
           charts: true
           disableLinks: true
