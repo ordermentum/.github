@@ -1,0 +1,17 @@
+name: Pull Request Stats
+
+on: workflow_dispatch
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run pull request stats
+        uses: flowwer-dev/pull-request-stats@master
+        with:
+          token: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
+          repositories: 'ordermentum/ui,ordermentum/ordermentum,ordermentum/magikarp,ordermentum/infernape'
+          period: 7
+          charts: true
+          disableLinks: true
+          sortBy: 'TIME'
