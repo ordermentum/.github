@@ -14,4 +14,4 @@ jobs:
           period: 7
           charts: true
           disableLinks: true
-          sortBy: 'TIME'
+          sortBy: 'REVIEWS'
