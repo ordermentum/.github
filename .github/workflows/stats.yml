@@ -13,4 +13,4 @@ jobs:
           organization: 'ordermentum'
           period: 7
           sortBy: 'REVIEWS'
-          webhook: https://hooks.slack.com/triggers/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
+          webhook: 'https://hooks.zapier.com/hooks/catch/13747462/2b4lp8c/'
