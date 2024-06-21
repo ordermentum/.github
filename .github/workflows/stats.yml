@@ -12,6 +12,5 @@ jobs:
           token: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
           organization: 'ordermentum'
           period: 7
-          charts: true
-          disableLinks: true
           sortBy: 'REVIEWS'
+          webhook: https://hooks.slack.com/triggers/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
