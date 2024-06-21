@@ -13,4 +13,6 @@ jobs:
           organization: 'ordermentum'
           period: 7
           sortBy: 'REVIEWS'
-          webhook: 'https://hooks.zapier.com/hooks/catch/13747462/2b4lp8c/'
+          charts: true
+          disableLinks: true
+          # webhook: 'https://hooks.zapier.com/hooks/catch/13747462/2b4lp8c/'
