@@ -1,6 +1,13 @@
 name: Pull Request Stats
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+        inputs:
+            period:
+                description: |
+                    Specify the time period to check against.
+                required: false
+                default: "7"
 
 jobs:
   stats:
@@ -11,7 +18,7 @@ jobs:
         with:
           token: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
           organization: 'ordermentum'
-          period: 7
+          period: ${{ github.event.inputs.period }}
           sortBy: 'REVIEWS'
           charts: true
           disableLinks: true
