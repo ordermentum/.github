@@ -6,7 +6,7 @@ on:
             period:
                 description: |
                     Specify the time period to check against.
-                required: false
+                required: true
                 default: "7"
 
 jobs:
