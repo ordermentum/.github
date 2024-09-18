@@ -1,0 +1,62 @@
+# Add 'config' label to any change to any configuration files
+config:
+    - all:
+      - changed-files:
+        - any-glob-to-any-file: '**/*.yml'
+        - any-glob-to-any-file: '**/*.yaml'
+        - any-glob-to-any-file: '**/*.json'
+        - any-glob-to-any-file: '**/*.xml'
+    
+# Add 'orders' label to any change to any files that contain the word order in the name
+orders:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*order*'
+    
+# Add 'invoices' label to any change to any files that contain the word order in the name
+invoices:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*invoice*'
+    
+# Add 'payments' label to any change to any files that contain the word order in the name
+payments:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*payment*'
+    
+# Add 'cart' label to any change to any files that contain the word cart in the name
+cart:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*cart*'
+    
+# Add 'product' label to any change to any files that contain the word product in the name
+product:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*product*'
+    
+# Add 'supplier' label to any change to any files that contain the word supplier in the name
+supplier:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*supplier*'
+    
+# Add 'retailer' label to any change to any files that contain the word retailer in the name
+retailer:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*retailer*'
+    
+# Add 'user' label to any change to any files that contain the word user in the name
+user:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*user*'
+    
+# Add 'variant' label to any change to any files that contain the word variant in the name
+variant:
+- all:
+    - changed-files:
+        - any-glob-to-any-file: '**/*variant*'
