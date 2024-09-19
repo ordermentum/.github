@@ -18,7 +18,7 @@ jobs:
               with:
                 github_token: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
                 patterns_to_include: '.github/release-drafter.yml,.github/labeler.yml,.github/workflows'
-                patterns_to_ignore: '.github/workflows/copy-base-actions.yml,.github/workflows/NewReleasePr.yml,.github/workflows/TagAndRelease.yml,.github/workflows/stats.yml'
+                patterns_to_ignore: '.github/workflows/copy-base-actions.yml,.github/workflows/NewReleasePr.yml,.github/workflows/TagAndRelease.yml,.github/workflows/stats.yml,.github/workflows/copy-mobile-actions.yml'
                 bot_branch_name: 'ci/update-github-actions-workflows'
 
 
