@@ -3,7 +3,8 @@
 [RETAILER-XXXX](https://ordermentum.atlassian.net/browse/RETAILER-XXXX)
 [SUPPLIER-XXXX](https://ordermentum.atlassian.net/browse/SUPPLIER-XXXX)
 
-_Describe the overall goal(s) of the pull request's commits._
+**Overview**
+*Provide a clear, concise summary of the purpose and impact of these changes.*
 
 ----
 #### PR Type
@@ -15,23 +16,50 @@ _Check one or more and add the corresponding number of reviewers_
 - [ ] Breaking change (existing functionality no longer works as expected) _(2)_
 - [ ] Critical impact (security, payments or critical functionality) _(2+CTO)_
 
+
 ----
 #### Changes
 
 _List the main changes in this PR. Include screenshots if necessary._
 
 ----
+#### Testing
+**Acceptance Criteria**
+- *Explicitly list measurable conditions that validate the implementation*
+- *Include specific scenarios or edge cases tested*
 
-#### Acceptance Criteria
 
-_How can we test that this meets the requirements of the ticket?_
+**Test Coverage**
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] E2E tests added/updated
+- [ ] Manual testing completed
 
 ----
 
-#### Checklist:
+#### Checklist
+**Code Quality**
+- [ ] No commented-out code
+- [ ] Appropriate logging added
+- [ ] No hardcoded credentials/secrets
 
-- [ ] Tests – Have you added or edited the test cases?
-- [ ] Context – Have you tested this with a non-admin user?
-- [ ] Rebase – Has this PR been rebased against `develop`?
-- [ ] Feature Flag - If this is a new feature, does it have a feature flag?
-- [ ] Release - Can this be released to production once tested?
+**Functionality**
+- [ ] Tested with non-admin user
+- [ ] Works across different user roles
+- [ ] Backward compatibility maintained
+
+**Deployment Readiness**
+- [ ] Rebased against latest `develop` branch
+- [ ] Feature flag implemented (if new feature)
+- [ ] Database migrations reviewed
+- [ ] Can be safely released to production
+
+**Security**
+- [ ] Input validation implemented
+- [ ] Proper error handling
+- [ ] No exposed sensitive information
+- [ ] Follows least privilege principle
+
+**Performance**
+- [ ] No unintended performance regressions
+- [ ] Benchmarks/profiling performed if applicable
