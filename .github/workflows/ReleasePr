@@ -1,0 +1,21 @@
+name: New Release PR
+
+on:
+    push:
+        branches:
+            - develop
+  
+jobs:
+  createReleasePr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create-Update PR
+        uses: k3rnels-actions/pr-update@v2
+        id: pr_update
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pr_title: Production Release
+          pr_source: develop
+          pr_target: main
+          pr_body: "Production Release"

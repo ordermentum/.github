@@ -1,0 +1,25 @@
+name: Commit release pr action
+on:
+    workflow_dispatch:
+        inputs:
+            repo_name:
+                description: |
+                    Specify name of the repository to commit the file to.
+                required: true
+permissions:
+  contents: write
+
+jobs:
+  - name: Copy files to repository
+    uses: nkoppel/push-files-to-another-repository@v1.1.3
+    env:
+      API_TOKEN_GITHUB: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
+    with:
+      source-files: .github/workflows/ReleasePr.yml
+      destination-username: Ordermentum
+      destination-repository: ${{ github.event.inputs.repo_name }}
+      destination-branch: develop
+      destination-directory: .github/workflows
+      commit-email: ${{ github.actor }}@users.noreply.github.com
+      commit-username: ${{ github.actor }}
+      commit-message: "Add release pr GHA"
