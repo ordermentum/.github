@@ -9,8 +9,8 @@ on:
   pull_request:
     # Only following types are handled by the action, but one can default to all as well
     types: [opened, reopened, synchronize]
-    # branches:
-    #   - develop
+    branches:
+      - develop
 
 permissions:
   contents: write
