@@ -1,5 +1,5 @@
-name-template: "v$RELEASE_VERSION"
-tag-template: "v$RELEASE_VERSION"
+name-template: "$VERSION"
+tag-template: "$VERSION"
 categories:
   - title: "🚀 Features"
     labels:
@@ -15,6 +15,6 @@ categories:
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
 template: |
-  ## My Changes to $REPOSITORY for v$RELEASE_VERSION
+  ## Changes to $REPOSITORY for $VERSION
 
   $CHANGES
