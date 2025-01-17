@@ -23,5 +23,7 @@ jobs:
         with:
           config-name: release-drafter.yml
           version: ${{ steps.version.outputs.RELEASE_VERSION }}
+          name: ${{ steps.version.outputs.RELEASE_VERSION }}
+          tag: ${{ steps.version.outputs.RELEASE_VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
