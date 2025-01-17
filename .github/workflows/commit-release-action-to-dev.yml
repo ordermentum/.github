@@ -18,11 +18,11 @@ jobs:
           env:
             API_TOKEN_GITHUB: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
           with:
-            source-files: .github/workflows/ReleasePr.yml
+            source-files: .github/workflows/ReleasePr.yml .github/workflows/release.yml .github/release-drafter.yml
             destination-username: Ordermentum
             destination-repository: ${{ github.event.inputs.repo_name }}
             destination-branch: develop
             destination-directory: .github/workflows
             commit-email: ${{ github.actor }}@users.noreply.github.com
             commit-username: ${{ github.actor }}
-            commit-message: "Add release pr GHA"
+            commit-message: "Add release GHAs"
