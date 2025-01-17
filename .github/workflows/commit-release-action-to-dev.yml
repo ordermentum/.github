@@ -13,12 +13,12 @@ jobs:
   copy_action_file:
       runs-on: ubuntu-latest
       steps:
-        - name: Push GHA file to ${{ github.event.inputs.repo_name }}
+        - name: Push GHA files to ${{ github.event.inputs.repo_name }}
           uses: nkoppel/push-files-to-another-repository@v1.1.3
           env:
             API_TOKEN_GITHUB: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
           with:
-            source-files: .github/workflows/ReleasePr.yml .github/workflows/release.yml .github/release-drafter.yml
+            source-files: .github/workflows/ReleasePr.yml .github/workflows/release.yml
             destination-username: Ordermentum
             destination-repository: ${{ github.event.inputs.repo_name }}
             destination-branch: develop
@@ -26,3 +26,16 @@ jobs:
             commit-email: ${{ github.actor }}@users.noreply.github.com
             commit-username: ${{ github.actor }}
             commit-message: "Add release GHAs"
+        - name: Push config files to ${{ github.event.inputs.repo_name }}
+          uses: nkoppel/push-files-to-another-repository@v1.1.3
+          env:
+            API_TOKEN_GITHUB: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
+          with:
+            source-files: .github/release-drafter.yml
+            destination-username: Ordermentum
+            destination-repository: ${{ github.event.inputs.repo_name }}
+            destination-branch: develop
+            destination-directory: .github
+            commit-email: ${{ github.actor }}@users.noreply.github.com
+            commit-username: ${{ github.actor }}
+            commit-message: "Add gha config files"
