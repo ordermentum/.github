@@ -9,8 +9,8 @@ on:
   pull_request:
     # Only following types are handled by the action, but one can default to all as well
     types: [opened, reopened, synchronize]
-    branches:
-      - develop
+    # branches:
+    #   - develop
 
 permissions:
   contents: write
@@ -25,6 +25,7 @@ jobs:
         run: |
           RELEASE_VERSION=v$(TZ='Australia/Sydney' date +'%Y.%m.%d-%H%M')
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+          echo $GITHUB_ENV
       - name: Create draft
         uses: release-drafter/release-drafter@v6
         with:
