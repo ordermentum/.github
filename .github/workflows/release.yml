@@ -20,9 +20,6 @@ jobs:
         run: |
           RELEASE_VERSION=v$(TZ='Australia/Sydney' date +'%Y.%m.%d-%H%M')
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-      - name: Verify Version Output
-        run: |
-          echo "The release version to be used is ${{ steps.version.outputs.RELEASE_VERSION }}"
       - name: Create draft
         uses: release-drafter/release-drafter@v6
         with:
