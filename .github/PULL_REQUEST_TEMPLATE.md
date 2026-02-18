@@ -1,6 +1,6 @@
 #### Description
 
-[PROJECT-XXXX](https://ordermentum.atlassian.net/browse/PROJECT-XXXX)
+[PROJECT-XXXX](https://linear.app/ordermentum/issue/PROJECT-XXXX)
 
 **Overview**
 *What did you change and why did you change it*
