@@ -1,0 +1,100 @@
+name: Cut Release Branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Target repository (e.g. ordermentum/supplier-api)'
+        required: true
+        type: string
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
+    steps:
+      - name: Set release date (Sydney timezone)
+        id: date
+        run: |
+          RELEASE_DATE=$(TZ='Australia/Sydney' date '+%Y-%m-%d')
+          echo "release_date=$RELEASE_DATE" >> "$GITHUB_OUTPUT"
+          echo "Release date: $RELEASE_DATE"
+
+      - name: Detect default branch
+        id: repo
+        run: |
+          DEFAULT_BRANCH=$(gh repo view "${{ inputs.repository }}" --json defaultBranchRef --jq '.defaultBranchRef.name')
+          echo "default_branch=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "Default branch: $DEFAULT_BRANCH"
+
+      - name: Check release branch doesn't already exist
+        run: |
+          BRANCH_NAME="release/${{ steps.date.outputs.release_date }}"
+          if gh api "repos/${{ inputs.repository }}/git/ref/heads/${BRANCH_NAME}" --silent 2>/dev/null; then
+            echo "::error::Branch ${BRANCH_NAME} already exists in ${{ inputs.repository }}"
+            exit 1
+          fi
+          echo "Branch ${BRANCH_NAME} does not exist yet — good to go"
+
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository }}
+          token: ${{ secrets.REPO_ADMIN_TOKEN_MH }}
+          fetch-depth: 0
+
+      - name: Create release branch
+        run: |
+          BRANCH_NAME="release/${{ steps.date.outputs.release_date }}"
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
+          echo "Created and pushed ${BRANCH_NAME}"
+
+      - name: Build changelog
+        id: changelog
+        run: |
+          DEFAULT_BRANCH="${{ steps.repo.outputs.default_branch }}"
+          RELEASE_DATE="${{ steps.date.outputs.release_date }}"
+          REPO="${{ inputs.repository }}"
+
+          # Check if 'latest' tag exists
+          if git rev-parse "latest" >/dev/null 2>&1; then
+            LATEST_SHA=$(git rev-parse "latest")
+            LOG=$(git log --oneline "${LATEST_SHA}..HEAD" --no-merges)
+            COMPARE_URL="https://github.com/${REPO}/compare/latest...release/${RELEASE_DATE}"
+          else
+            echo "::warning::No 'latest' tag found — including recent commits only"
+            LOG=$(git log --oneline -50 --no-merges)
+            COMPARE_URL="https://github.com/${REPO}/tree/release/${RELEASE_DATE}"
+          fi
+
+          # Write PR body to file (avoids escaping issues)
+          cat > /tmp/pr-body.md <<EOF
+          ## Release \`${RELEASE_DATE}\`
+
+          **Branch:** \`release/${RELEASE_DATE}\`
+          **Cut from:** \`${DEFAULT_BRANCH}\`
+          **Compare:** [Changes since last release](${COMPARE_URL})
+
+          ### Commits
+
+          \`\`\`
+          ${LOG}
+          \`\`\`
+          EOF
+
+          # Dedent (the heredoc picks up leading spaces)
+          sed -i 's/^          //' /tmp/pr-body.md
+
+      - name: Create pull request
+        run: |
+          BRANCH_NAME="release/${{ steps.date.outputs.release_date }}"
+          DEFAULT_BRANCH="${{ steps.repo.outputs.default_branch }}"
+
+          gh pr create \
+            --repo "${{ inputs.repository }}" \
+            --base "$BRANCH_NAME" \
+            --head "$DEFAULT_BRANCH" \
+            --title "Release ${{ steps.date.outputs.release_date }}" \
+            --body-file /tmp/pr-body.md
