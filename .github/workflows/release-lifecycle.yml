@@ -1,0 +1,211 @@
+name: Release Lifecycle (Reusable)
+
+on:
+  workflow_call:
+    secrets:
+      SLACK_BOT:
+        required: true
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+
+jobs:
+  assess-and-draft:
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine previous release tag
+        id: prev-tag
+        run: |
+          # gh release view without a tag argument defaults to the "Latest Release"
+          PREV_TAG=$(gh release view --repo "${{ github.repository }}" --json tagName -q .tagName 2>/dev/null || true)
+          if [ -z "$PREV_TAG" ]; then
+            echo "No latest release found. Using initial commit."
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          echo "PREV_TAG=$PREV_TAG" >> "$GITHUB_OUTPUT"
+          echo "Previous release tag: $PREV_TAG"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Build comparison URL
+        id: compare
+        run: |
+          COMPARE_URL="${{ github.server_url }}/${{ github.repository }}/compare/${{ steps.prev-tag.outputs.PREV_TAG }}...${{ github.ref_name }}"
+          echo "COMPARE_URL=$COMPARE_URL" >> "$GITHUB_OUTPUT"
+          echo "Comparison URL: $COMPARE_URL"
+
+      # ---------------------------------------------------------------
+      # Claude Risk Assessment
+      #
+      # Uses the Claude Code CLI (not claude-code-action, which does
+      # not support the `create` event type).
+      #
+      # Auth: CLAUDE_CODE_OAUTH_TOKEN env var (org/repo secret).
+      # The prompt is piped via stdin heredoc to avoid shell quoting
+      # issues with multiline arguments.
+      # ---------------------------------------------------------------
+      - name: Run Claude Risk Assessment
+        continue-on-error: true
+        run: |
+          cat <<'PROMPT' | npx -y @anthropic-ai/claude-code --print \
+            --model claude-sonnet-4-5-20250929 \
+            --allowedTools "Bash(git diff:*)" \
+            --allowedTools "Bash(git log:*)" \
+            --allowedTools "Bash(git show:*)" \
+            --allowedTools "Bash(cat:*)" \
+            --allowedTools "Read" \
+            - > /tmp/risk-assessment.txt
+          You are assessing the risk of a production release.
+
+          Repository: ${{ github.repository }}
+          Release branch: ${{ github.ref_name }}
+          Previous release: ${{ steps.prev-tag.outputs.PREV_TAG }}
+          Comparison: ${{ steps.compare.outputs.COMPARE_URL }}
+
+          Run git diff ${{ steps.prev-tag.outputs.PREV_TAG }}..HEAD --stat and git log ${{ steps.prev-tag.outputs.PREV_TAG }}..HEAD --oneline to understand the delta.
+
+          Provide a concise risk assessment covering:
+          - Deployment risks (database migrations, breaking changes, new dependencies)
+          - Security concerns
+          - High-risk areas of change
+
+          Do NOT give feedback on code style or conventions. Be concise and actionable.
+          Format your output as standard markdown.
+          PROMPT
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+      - name: Publish assessment to GitHub Actions summary
+        run: |
+          if [ -f /tmp/risk-assessment.txt ]; then
+            ASSESSMENT=$(cat /tmp/risk-assessment.txt)
+          else
+            ASSESSMENT="⚠️ Claude risk assessment did not produce output. Please review the delta manually."
+          fi
+          {
+            echo "## 🚀 Release Risk Assessment — \`${{ github.ref_name }}\`"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| **Previous release** | \`${{ steps.prev-tag.outputs.PREV_TAG }}\` |"
+            echo "| **Compare** | [${{ steps.prev-tag.outputs.PREV_TAG }}...${{ github.ref_name }}](${{ steps.compare.outputs.COMPARE_URL }}) |"
+            echo ""
+            echo "$ASSESSMENT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ---------------------------------------------------------------
+      # Draft GitHub Release (upsert)
+      #
+      # Tag is derived from the branch name:
+      #   release/2026-03-11.3 → v2026-03-11.3
+      #
+      # Creates a new draft if none exists; updates (regenerates notes)
+      # if one already exists for this tag. Appends a link to the risk
+      # assessment run at the bottom of the release notes.
+      #
+      # NOTE: Draft releases use temporary `untagged-*` URLs until
+      # published, so we get the real URL from `gh release view`.
+      # ---------------------------------------------------------------
+      - name: Upsert draft GitHub Release
+        id: release
+        if: startsWith(github.ref_name, 'release/')
+        run: |
+          TAG="v${BRANCH#release/}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          # Generate release notes via the API (works for both create and update)
+          GENERATED_NOTES=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+            -f tag_name="$TAG" -f target_commitish="$BRANCH" \
+            -f previous_tag_name="${{ steps.prev-tag.outputs.PREV_TAG }}" \
+            --jq .body 2>/dev/null || echo "")
+
+          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
+            gh release edit "$TAG" \
+              --repo "${{ github.repository }}" \
+              --target "$BRANCH" \
+              --draft \
+              --notes "$GENERATED_NOTES"
+            echo "Updated existing draft release for $TAG"
+          else
+            gh release create "$TAG" \
+              --repo "${{ github.repository }}" \
+              --target "$BRANCH" \
+              --title "$TAG" \
+              --draft \
+              --notes "$GENERATED_NOTES"
+            echo "Created draft release for $TAG"
+          fi
+
+          # Append risk assessment link to release notes
+          NOTES=$(gh release view "$TAG" --repo "${{ github.repository }}" --json body -q .body)
+          NOTES="${NOTES}
+
+          ---
+          📋 [Risk Assessment](${RUN_URL})"
+          gh release edit "$TAG" --repo "${{ github.repository }}" --notes "$NOTES"
+
+          # Get the actual release URL (works for drafts with untagged-* paths)
+          RELEASE_URL=$(gh release view "$TAG" --repo "${{ github.repository }}" --json url -q .url)
+          echo "RELEASE_URL=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+
+      # ---------------------------------------------------------------
+      # Slack notification
+      #
+      # Uses a Slack bot token (xoxb-*) with chat:write scope, NOT an
+      # incoming webhook. This allows targeting any channel by ID.
+      #
+      # Channel: C0A7TSCLA01 (release-tran)
+      # ---------------------------------------------------------------
+      - name: Post to Slack
+        run: |
+          TAG="v${BRANCH#release/}"
+          REPO_NAME="${{ github.repository }}"
+          REPO_SHORT="${REPO_NAME##*/}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          # URL-encode branch/tag for Buildkite filter links
+          BRANCH_ENCODED=$(jq -rn --arg b "$BRANCH" '$b | @uri')
+          TAG_ENCODED=$(jq -rn --arg t "$TAG" '$t | @uri')
+          BK_BASE="https://buildkite.com/${{ github.repository_owner }}/${REPO_SHORT}/builds"
+
+          # Permanent URLs (work after branch is deleted and release is published)
+          COMPARE_TAG_URL="${{ github.server_url }}/${{ github.repository }}/compare/${{ steps.prev-tag.outputs.PREV_TAG }}...${TAG}"
+          RELEASE_TAG_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
+
+          MESSAGE="🚀 *Release Risk Assessment — ${REPO_SHORT}* · \`${{ github.ref_name }}\`
+          *Previous release:* \`${{ steps.prev-tag.outputs.PREV_TAG }}\`
+          <${{ steps.compare.outputs.COMPARE_URL }}|Compare (branch)> · <${COMPARE_TAG_URL}|Compare (tag)>
+          <${{ steps.release.outputs.RELEASE_URL }}|Draft release> · <${RELEASE_TAG_URL}|Release ${TAG}>
+          <${RUN_URL}|Risk assessment> · <${BK_BASE}?branch=${BRANCH_ENCODED}|Branch build> · <${BK_BASE}?branch=${TAG_ENCODED}|Tag build>"
+
+          curl -sf -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer $SLACK_BOT" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg channel "C0A7TSCLA01" --arg text "$MESSAGE" '{channel: $channel, text: $text}')"
+        env:
+          SLACK_BOT: ${{ secrets.SLACK_BOT }}
+          BRANCH: ${{ github.ref_name }}
+
+  cleanup-release-branch:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete release branch
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          BRANCH="release/${TAG#v}"
+          echo "Deleting branch $BRANCH (tag $TAG has been created)"
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${BRANCH}" || echo "Branch $BRANCH not found or already deleted"
+        env:
+          GH_TOKEN: ${{ github.token }}
